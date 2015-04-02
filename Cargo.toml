@@ -1,0 +1,8 @@
+[package]
+name = "geom_well_known"
+version = "0.0.1"
+authors = ["Rory McCann <rory@technomancy.org>"]
+
+[dependencies]
+regex = "*"
+regex_macros = "*"
