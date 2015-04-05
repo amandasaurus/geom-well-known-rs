@@ -24,6 +24,11 @@ pub struct Point<T> {
     pub y: T
 }
 
+#[derive(Debug)]
+pub struct LineString<T> {
+    pub points: Vec<Point<T>>
+}
+
 impl<T> Point<T> {
     pub fn new(x: T, y: T) -> Point<T> {
         Point{ x: x, y: y}
@@ -36,14 +41,30 @@ impl<T: PartialEq> PartialEq for Point<T> {
     }
 }
 
-//pub trait Geometry {
-pub trait WKT {
+impl<T> LineString<T> {
+    pub fn new_empty() -> LineString<T> {
+        let points: Vec<Point<T>> = Vec::new();
+        LineString{ points: points }
+    }
+    pub fn push_point(&mut self, newpoint: Point<T>) {
+        self.points.push(newpoint);
+    }
+
+    pub fn npoints(&self) -> usize {
+        self.points.len()
+    }
+}
+
+impl<T: PartialEq> PartialEq for LineString<T> {
+    fn eq(&self, other: &LineString<T>) -> bool {
+        self.points == other.points
+    }
+}
+
+pub trait WKGeom {
 
     fn to_wkt(&self) -> String;
     fn from_wkt(&str) -> Result<Self, String>;
-}
-
-pub trait WKB {
 
     fn to_wkb(&self) -> Result<Vec<u8>, String>;
     fn from_wkb(Vec<u8>) -> Result<Self, String>;
@@ -52,9 +73,15 @@ pub trait WKB {
     fn from_wkb_hexstring(String) -> Result<Self, String>;
 }
 
-impl<T: Display+FromStr> WKT for Point<T> {
+impl<T: Display+FromStr> Point<T> {
+    fn point_coords(&self) -> String {
+        format!("{} {}", self.x, self.y)
+    }
+}
+
+impl<T: Display+FromStr+ToPrimitive+FromPrimitive> WKGeom for Point<T> {
     fn to_wkt(&self) -> String {
-        format!("POINT ({} {})", self.x, self.y)
+        format!("POINT ({})", self.point_coords())
     }
 
     fn from_wkt(wkt: &str) -> Result<Point<T>, String> {
@@ -74,9 +101,6 @@ impl<T: Display+FromStr> WKT for Point<T> {
         return Ok(Point::new(x, y));
 
     }
-}
-
-impl<T: ToPrimitive+FromPrimitive> WKB for Point<T> {
 
     fn to_wkb(&self) -> Result<Vec<u8>, String> {
         let mut results: Vec<u8> = Vec::new();
@@ -136,5 +160,32 @@ impl<T: ToPrimitive+FromPrimitive> WKB for Point<T> {
     fn from_wkb_hexstring(input: String) -> Result<Self, String> {
         let bin_string = try!(input.as_slice().from_hex().or(Err("Could not convert from hex".to_string())));
         Point::from_wkb(bin_string)
+    }
+}
+
+impl<T: Display+FromStr> WKGeom for LineString<T> {
+    fn to_wkt(&self) -> String {
+        format!("LINESTRING ({})", self.points.iter().map(|ref x| { x.point_coords() }).collect::<Vec<String>>().connect(", "))
+    }
+
+    fn from_wkt(wkt: &str) -> Result<LineString<T>, String> {
+        Err("foo".to_string())
+    }
+
+    fn to_wkb(&self) -> Result<Vec<u8>, String> {
+        Err("todo".to_string())
+    }
+
+    fn from_wkb(input: Vec<u8>) -> Result<Self, String> {
+        Err("fixme".to_string())
+    }
+
+    fn to_wkb_hexstring(&self) -> Result<String, String> {
+        Ok(try!(self.to_wkb()).as_slice().to_hex())
+    }
+
+    fn from_wkb_hexstring(input: String) -> Result<Self, String> {
+        let bin_string = try!(input.as_slice().from_hex().or(Err("Could not convert from hex".to_string())));
+        LineString::from_wkb(bin_string)
     }
 }

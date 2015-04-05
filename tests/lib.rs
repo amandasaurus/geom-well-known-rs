@@ -1,6 +1,6 @@
 extern crate geom_well_known;
 
-use geom_well_known::{Point, WKT, WKB};
+use geom_well_known::{LineString, Point, WKGeom};
 
 #[test]
 fn point_obj() {
@@ -24,12 +24,15 @@ fn point_obj() {
     assert_eq!(new_point, point);
 }
 
-//#[test]
-//fn lines() {
-//    let mut lines = LineString::new();
-//    lines.add_point(Point::new(0f32, 0f32));
-//    lines.add_point(Point::new(0f32, 1f32));
-//    assert_eq!(lines.to_wkt(), "LINESTRING (0 0, 0 1)".to_string());
-//    assert_eq!(lines.length(), 1);
-//    //let line = LineString::from_wkt("LINESTRING (0 0, 1 1)");
-//}
+#[test]
+fn lines() {
+    let mut line = LineString::new_empty();
+    line.push_point(Point::new(0f64, 0f64));
+    line.push_point(Point::new(0f64, 1f64));
+    assert_eq!(line.to_wkt(), "LINESTRING (0 0, 0 1)".to_string());
+    
+    let wkt = "LINESTRING( 0 0,   0 1)";
+    let new_line: LineString<f64> = LineString::from_wkt(wkt).unwrap();
+    assert_eq!(line, new_line)
+
+}
