@@ -1,6 +1,8 @@
 This crate provides methods to read & write Well Known Text (WKT) and Well
 Known Binary (WKB), the text & binary encoding of GIS geometry objects.
 
+[![Build Status](https://travis-ci.org/rory/geom-well-known-rs.svg)](https://travis-ci.org/rory/geom-well-known-rs)
+
 Licenced under GNU GPL v3 (or later). See LICENCE file.
 
 This is alpha quality software, not all features, or geometry types are
