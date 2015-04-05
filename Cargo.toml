@@ -6,3 +6,6 @@ authors = ["Rory McCann <rory@technomancy.org>"]
 [dependencies]
 regex = "*"
 regex_macros = "*"
+byteorder = "*"
+rustc-serialize = "*"
+log = "*"

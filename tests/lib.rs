@@ -1,17 +1,27 @@
 extern crate geom_well_known;
 
-use geom_well_known::{Point, ToWKT, FromWKT};
+use geom_well_known::{Point, WKT, WKB};
 
 #[test]
 fn point_obj() {
     let point = Point::new(0f32, 0f32);
     assert_eq!(point.x, 0f32);
     assert_eq!(point.to_wkt(), "POINT (0 0)".to_string());
+    assert_eq!(point.to_wkt(), "POINT (0 0)".to_string());
+
+
     let new_point_o = Point::from_wkt("POINT (1 3)");
-    //assert!(new_point_o.is_ok());
+    assert!(new_point_o.is_ok());
     let new_point : Point<isize> = new_point_o.unwrap();
     assert_eq!(new_point.x, 1);
     assert_eq!(new_point.y, 3);
+
+    let point = Point::new(2f64, 4f64);
+    let hex_wkb = "010100000000000000000000400000000000001040".to_string();
+    assert_eq!(point.to_wkb_hexstring(), hex_wkb);
+
+    let new_point = Point::from_wkb_hexstring(hex_wkb).unwrap();
+    assert_eq!(new_point, point);
 }
 
 //#[test]
