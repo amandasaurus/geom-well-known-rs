@@ -18,7 +18,7 @@ fn point_obj() {
 
     let point = Point::new(2f64, 4f64);
     let hex_wkb = "010100000000000000000000400000000000001040".to_string();
-    assert_eq!(point.to_wkb_hexstring(), hex_wkb);
+    assert_eq!(point.to_wkb_hexstring().unwrap(), hex_wkb);
 
     let new_point = Point::from_wkb_hexstring(hex_wkb).unwrap();
     assert_eq!(new_point, point);

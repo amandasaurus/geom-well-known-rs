@@ -6,6 +6,7 @@
 extern crate regex;
 extern crate rustc_serialize;
 extern crate byteorder;
+extern crate core;
 
 #[macro_use]
 extern crate log;
@@ -15,6 +16,7 @@ use std::str::FromStr;
 use std::io::Cursor;
 use rustc_serialize::hex::{FromHex, ToHex};
 use byteorder::{LittleEndian, BigEndian, WriteBytesExt, ReadBytesExt};
+use core::num::{ToPrimitive, FromPrimitive, from_f64};
 
 #[derive(Debug)]
 pub struct Point<T> {
@@ -43,12 +45,10 @@ pub trait WKT {
 
 pub trait WKB {
 
-    fn to_wkb(&self) -> Vec<u8>;
+    fn to_wkb(&self) -> Result<Vec<u8>, String>;
     fn from_wkb(Vec<u8>) -> Result<Self, String>;
 
-    fn to_wkb_hexstring(&self) -> String {
-        self.to_wkb().as_slice().to_hex()
-    }
+    fn to_wkb_hexstring(&self) -> Result<String, String>;
     fn from_wkb_hexstring(String) -> Result<Self, String>;
 }
 
@@ -66,7 +66,6 @@ impl<T: Display+FromStr> WKT for Point<T> {
             Err(_) => { return Err(format!("Could not convert {} from string", x_str)) },
             Ok(x) => { x }
         };
-        //let y = try!(T::from_str(try!(cap.at(2).ok_or("Cannot find y"))));
         let y_str  = try!(cap.at(2).ok_or("Cannot find y".to_string()));
         let y = match T::from_str(y_str) {
             Err(_) => {  return Err("Could not convert from string".to_string()) },
@@ -77,9 +76,9 @@ impl<T: Display+FromStr> WKT for Point<T> {
     }
 }
 
-impl WKB for Point<f64> {
+impl<T: ToPrimitive+FromPrimitive> WKB for Point<T> {
 
-    fn to_wkb(&self) -> Vec<u8> {
+    fn to_wkb(&self) -> Result<Vec<u8>, String> {
         let mut results: Vec<u8> = Vec::new();
         
         // We only optput Little Endian
@@ -89,12 +88,13 @@ impl WKB for Point<f64> {
         results.write_u32::<LittleEndian>(1);
 
         // The x and the y
-        results.write_f64::<LittleEndian>(self.x as f64);
-        results.write_f64::<LittleEndian>(self.y as f64);
+        results.write_f64::<LittleEndian>(try!(self.x.to_f64().ok_or("Could not convert X to f64".to_string())));
+        results.write_f64::<LittleEndian>(try!(self.y.to_f64().ok_or("Could not convert Y to f64".to_string())));
 
-        return results;
+        Ok(results)
     }
-    fn from_wkb(input: Vec<u8>) -> Result<Point<f64>, String> {
+
+    fn from_wkb(input: Vec<u8>) -> Result<Point<T>, String> {
         if input.len() != 21 {
             return Err(format!("Too short length of {} instead of 21", input.len()));
         }
@@ -105,7 +105,6 @@ impl WKB for Point<f64> {
             1 => { true },
             x => { return Err(format!("Invalid endianness, got {} instead of 0 or 1", x)) }
         };
-        println!("Got little_endianness {}", little_endianness);
 
         let geom_type = try!(match little_endianness {
             true => cursor.read_u32::<LittleEndian>(),
@@ -114,17 +113,24 @@ impl WKB for Point<f64> {
         if geom_type != 1 {
             return Err(format!("Unknown geom type. Got {}, expected 1", geom_type));
         }
-        let x = try!(match little_endianness {
+        let x: f64 = try!(match little_endianness {
             true => cursor.read_f64::<LittleEndian>(),
             false => cursor.read_f64::<BigEndian>()
         }.or(Err("Could not parse out X")));
-        let y = try!(match little_endianness {
+        let y: f64 = try!(match little_endianness {
             true => cursor.read_f64::<LittleEndian>(),
             false => cursor.read_f64::<BigEndian>()
         }.or(Err("Could not parse out Y")));
 
-        Ok(Point{ x: x, y: y})
+        let x: T = try!(from_f64(x).ok_or(format!("Could not convert X={} from f64", x)));
+        let y: T = try!(from_f64(y).ok_or(format!("Could not convert Y={} from f64", y)));
+
+        Ok(Point{ x:x, y: y })
         
+    }
+
+    fn to_wkb_hexstring(&self) -> Result<String, String> {
+        Ok(try!(self.to_wkb()).as_slice().to_hex())
     }
 
     fn from_wkb_hexstring(input: String) -> Result<Self, String> {
