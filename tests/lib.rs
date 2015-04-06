@@ -30,6 +30,7 @@ fn lines() {
     line.push_point(Point::new(0f64, 0f64));
     line.push_point(Point::new(0f64, 1f64));
     assert_eq!(line.to_wkt(), "LINESTRING (0 0, 0 1)".to_string());
+    assert_eq!(line.to_wkb_hexstring().unwrap(), "010200000002000000000000000000000000000000000000000000000000000000000000000000f03f".to_string());
     
     let wkt = "LINESTRING( 0 0,   0 1)";
     let new_line: LineString<f64> = LineString::from_wkt(wkt).unwrap();

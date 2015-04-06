@@ -158,7 +158,7 @@ impl<T: Display+FromStr+ToPrimitive+FromPrimitive> WKGeom for Point<T> {
     }
 }
 
-impl<T: Display+FromStr> WKGeom for LineString<T> {
+impl<T: Display+FromStr+ToPrimitive> WKGeom for LineString<T> {
     fn to_wkt(&self) -> String {
         format!("LINESTRING ({})", self.points.iter().map(|ref x| { x.point_coords() }).collect::<Vec<String>>().connect(", "))
     }
@@ -168,7 +168,24 @@ impl<T: Display+FromStr> WKGeom for LineString<T> {
     }
 
     fn to_wkb(&self) -> Result<Vec<u8>, String> {
-        Err("todo".to_string())
+        let mut result: Vec<u8> = Vec::new();
+        
+        // We only optput Little Endian
+        result.write_u8(1);
+
+        // LineString 
+        result.write_u32::<LittleEndian>(2);
+
+        // how many points do we have?
+        result.write_u32::<LittleEndian>(try!(self.points.len().to_u32().ok_or("Could not convert length to u32?!")));
+
+        for point in self.points.iter() {
+            // The x and the y
+            result.write_f64::<LittleEndian>(try!(point.x.to_f64().ok_or("Could not convert X to f64".to_string())));
+            result.write_f64::<LittleEndian>(try!(point.y.to_f64().ok_or("Could not convert Y to f64".to_string())));
+        }
+
+        Ok(result)
     }
 
     fn from_wkb(input: Vec<u8>) -> Result<Self, String> {
