@@ -14,6 +14,8 @@ extern crate log;
 use std::fmt::Display;
 use std::str::FromStr;
 use std::io::Cursor;
+use std::iter::range_step_inclusive;
+
 use rustc_serialize::hex::{FromHex, ToHex};
 use byteorder::{LittleEndian, BigEndian, WriteBytesExt, ReadBytesExt};
 use core::num::{ToPrimitive, FromPrimitive, from_f64};
@@ -164,7 +166,22 @@ impl<T: Display+FromStr+ToPrimitive+FromPrimitive> WKGeom for LineString<T> {
     }
 
     fn from_wkt(wkt: &str) -> Result<LineString<T>, String> {
-        Err("foo".to_string())
+        let wkt = wkt.trim();
+        let re = regex!(r"LINESTRING *\( *(.*?) +(.*?)(?: *, *(.*?) (.*?))* *\)");
+        let cap = try!(re.captures(wkt).ok_or("Cannot match point regex".to_string()));
+
+        let mut result: LineString<T> = LineString::new_empty();
+
+        for i in range_step_inclusive(1, cap.len()-1, 2) {
+            let x_str = try!(cap.at(i).ok_or("Cannot find x".to_string()));
+            let x = try!(T::from_str(x_str).or(Err(format!("Could not convert {} from string", x_str))));
+            let y_str  = try!(cap.at(i+1).ok_or("Cannot find y".to_string()));
+            let y = try!(T::from_str(y_str).or(Err(format!("Could not convert {} from string", y_str))));
+            
+            result.push_point(Point::new(x, y));
+        }
+
+        Ok(result)
     }
 
     fn to_wkb(&self) -> Result<Vec<u8>, String> {

@@ -24,18 +24,41 @@ fn point_obj() {
     assert_eq!(new_point, point);
 }
 
-#[test]
-fn lines() {
+fn simple_line() -> LineString<f64> {
     let mut line = LineString::new_empty();
     line.push_point(Point::new(0f64, 0f64));
     line.push_point(Point::new(0f64, 1f64));
+    return line;
+}
+
+#[test]
+fn lines_create() {
+    let line = simple_line();
+}
+
+#[test]
+fn lines_to_wkt() {
+    let line = simple_line();
     assert_eq!(line.to_wkt(), "LINESTRING (0 0, 0 1)".to_string());
+}
+
+#[test]
+fn lines_to_wkb() {
+    let line = simple_line();
     assert_eq!(line.to_wkb_hexstring().unwrap(), "010200000002000000000000000000000000000000000000000000000000000000000000000000f03f".to_string());
-    
+}
+
+#[test]
+fn lines_from_wkb() {
+    let line = simple_line();
     let new_line: LineString<f64> = LineString::from_wkb(line.to_wkb().unwrap()).unwrap();
     assert_eq!(new_line, line);
-    //let wkt = "LINESTRING( 0 0,   0 1)";
-    //let new_line: LineString<f64> = LineString::from_wkt(wkt).unwrap();
-    //assert_eq!(line, new_line)
+}
 
+#[test]
+fn lines_from_wkt() {
+    let line = simple_line();
+    let wkt = "LINESTRING( 0 0,   0 1)";
+    let new_line2: LineString<f64> = LineString::from_wkt(wkt).unwrap();
+    assert_eq!(line, new_line2)
 }

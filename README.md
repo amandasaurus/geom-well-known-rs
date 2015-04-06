@@ -12,7 +12,7 @@ supported. This table lists current features supported.
 |----------------|----------|-----------|----------|-----------|
 | Point          |   [x]    |     [x]   |   [x]    |    [x]    |
 | MultiPoint     |   [ ]    |     [ ]   |   [ ]    |    [ ]    |
-| Linestring     |   [ ]    |     [x]   |   [x]    |    [x]    |
+| Linestring     |   [x]    |     [x]   |   [x]    |    [x]    |
 | MultiLinestring|   [ ]    |     [ ]   |   [ ]    |    [ ]    |
 | Polygon        |   [ ]    |     [ ]   |   [ ]    |    [ ]    |
 | MultiPolygon   |   [ ]    |     [ ]   |   [ ]    |    [ ]    |
