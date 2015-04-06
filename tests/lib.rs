@@ -32,6 +32,8 @@ fn lines() {
     assert_eq!(line.to_wkt(), "LINESTRING (0 0, 0 1)".to_string());
     assert_eq!(line.to_wkb_hexstring().unwrap(), "010200000002000000000000000000000000000000000000000000000000000000000000000000f03f".to_string());
     
+    let new_line: LineString<f64> = LineString::from_wkb(line.to_wkb().unwrap()).unwrap();
+    assert_eq!(new_line, line);
     //let wkt = "LINESTRING( 0 0,   0 1)";
     //let new_line: LineString<f64> = LineString::from_wkt(wkt).unwrap();
     //assert_eq!(line, new_line)

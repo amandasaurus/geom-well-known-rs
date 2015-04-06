@@ -158,7 +158,7 @@ impl<T: Display+FromStr+ToPrimitive+FromPrimitive> WKGeom for Point<T> {
     }
 }
 
-impl<T: Display+FromStr+ToPrimitive> WKGeom for LineString<T> {
+impl<T: Display+FromStr+ToPrimitive+FromPrimitive> WKGeom for LineString<T> {
     fn to_wkt(&self) -> String {
         format!("LINESTRING ({})", self.points.iter().map(|ref x| { x.point_coords() }).collect::<Vec<String>>().connect(", "))
     }
@@ -189,7 +189,49 @@ impl<T: Display+FromStr+ToPrimitive> WKGeom for LineString<T> {
     }
 
     fn from_wkb(input: Vec<u8>) -> Result<Self, String> {
-        Err("fixme".to_string())
+        let mut cursor = Cursor::new(input);
+        cursor.set_position(0);
+        let little_endianness = match try!(cursor.read_u8().or(Err("Couldn't read"))) {
+            0 => { false },
+            1 => { true },
+            x => { return Err(format!("Invalid endianness, got {} instead of 0 or 1", x)) }
+        };
+
+        let geom_type = try!(match little_endianness {
+            true => cursor.read_u32::<LittleEndian>(),
+            false => cursor.read_u32::<BigEndian>()
+        }.or(Err("Could not read geom type")));
+        if geom_type != 2 {
+            return Err(format!("Unknown geom type. Got {}, expected 2", geom_type));
+        }
+
+        let num_points = try!(match little_endianness {
+            true => cursor.read_u32::<LittleEndian>(),
+            false => cursor.read_u32::<BigEndian>()
+        }.or(Err("Could not read num points type")));
+
+        let mut result: LineString<T> = LineString::new_empty();
+
+
+        for i in 0..num_points {
+            let x: f64 = try!(match little_endianness {
+                true => cursor.read_f64::<LittleEndian>(),
+                false => cursor.read_f64::<BigEndian>()
+            }.or(Err("Could not parse out X")));
+            let y: f64 = try!(match little_endianness {
+                true => cursor.read_f64::<LittleEndian>(),
+                false => cursor.read_f64::<BigEndian>()
+            }.or(Err("Could not parse out Y")));
+
+            let x: T = try!(from_f64(x).ok_or(format!("Could not convert X={} from f64", x)));
+            let y: T = try!(from_f64(y).ok_or(format!("Could not convert Y={} from f64", y)));
+
+            result.push_point(Point{ x:x, y: y })
+        }
+
+        Ok(result)
+
+        
     }
 
     fn to_wkb_hexstring(&self) -> Result<String, String> {
