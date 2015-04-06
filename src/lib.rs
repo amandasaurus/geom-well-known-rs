@@ -89,15 +89,10 @@ impl<T: Display+FromStr+ToPrimitive+FromPrimitive> WKGeom for Point<T> {
         let re = regex!(r"POINT *\( *(.*?) +(.*?) *\)");
         let cap = try!(re.captures(wkt).ok_or("Cannot match point regex".to_string()));
         let x_str = try!(cap.at(1).ok_or("Cannot find x".to_string()));
-        let x = match T::from_str(x_str) {
-            Err(_) => { return Err(format!("Could not convert {} from string", x_str)) },
-            Ok(x) => { x }
-        };
+        let x = try!(T::from_str(x_str).or(Err(format!("Could not convert {} from string", x_str))));
         let y_str  = try!(cap.at(2).ok_or("Cannot find y".to_string()));
-        let y = match T::from_str(y_str) {
-            Err(_) => {  return Err("Could not convert from string".to_string()) },
-            Ok(y) => { y }
-        };
+        let y = try!(T::from_str(y_str).or(Err(format!("Could not convert {} from string", y_str))));
+
         return Ok(Point::new(x, y));
 
     }
