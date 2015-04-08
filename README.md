@@ -1,5 +1,6 @@
-This crate provides methods to read & write Well Known Text (WKT) and Well
-Known Binary (WKB), the text & binary encoding of GIS geometry objects.
+This crate provides methods to read & write (Extended) Well Known Text ((E)WKT)
+and (Extended) Well Known Binary ((E)WKB), the text & binary encoding of GIS
+geometry objects.
 
 [![Build Status](https://travis-ci.org/rory/geom-well-known-rs.svg)](https://travis-ci.org/rory/geom-well-known-rs)
 
@@ -12,7 +13,7 @@ supported. This table lists current features supported.
 |----------------|----------|-----------|----------|-----------|
 | Point          |   [x]    |     [x]   |   [x]    |    [x]    |
 | MultiPoint     |   [ ]    |     [ ]   |   [ ]    |    [ ]    |
-| Linestring     |   [x]    |     [x]   |   [x]    |    [x]    |
+| Linestring     |   [x]    |     [x]   |   [.]    |    [x]    |
 | MultiLinestring|   [ ]    |     [ ]   |   [ ]    |    [ ]    |
 | Polygon        |   [ ]    |     [ ]   |   [ ]    |    [ ]    |
 | MultiPolygon   |   [ ]    |     [ ]   |   [ ]    |    [ ]    |
