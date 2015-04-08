@@ -116,8 +116,8 @@ impl<T: Display+FromStr+ToPrimitive+FromPrimitive> WKGeom for Point<T> {
     }
 
     fn from_wkb(input: Vec<u8>) -> Result<Point<T>, String> {
-        if input.len() != 21 {
-            return Err(format!("Too short length of {} instead of 21", input.len()));
+        if input.len() != 21 && input.len() != 25 {
+            return Err(format!("Wrong length of {} instead of 21 or 25: {:?}", input.len(), input));
         }
         let mut cursor = Cursor::new(input);
         cursor.set_position(0);
@@ -127,13 +127,26 @@ impl<T: Display+FromStr+ToPrimitive+FromPrimitive> WKGeom for Point<T> {
             x => { return Err(format!("Invalid endianness, got {} instead of 0 or 1", x)) }
         };
 
-        let geom_type = try!(match little_endianness {
+
+        let geom_field = try!(match little_endianness {
             true => cursor.read_u32::<LittleEndian>(),
             false => cursor.read_u32::<BigEndian>()
         }.or(Err("Could not read geom type")));
+        let geom_type = geom_field & 0xFF;
         if geom_type != 1 {
             return Err(format!("Unknown geom type. Got {}, expected 1", geom_type));
         }
+
+        let has_srid = ((geom_type & 0x20000000) != 0);
+        if has_srid {
+            let srid = try!(match little_endianness {
+                true => cursor.read_u32::<LittleEndian>(),
+                false => cursor.read_u32::<BigEndian>()
+            }.or(Err("Could not read SRID")));
+            // NB we just throw this away now
+        }
+
+
         let x: f64 = try!(match little_endianness {
             true => cursor.read_f64::<LittleEndian>(),
             false => cursor.read_f64::<BigEndian>()

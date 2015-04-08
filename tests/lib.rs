@@ -24,6 +24,13 @@ fn point_obj() {
     assert_eq!(new_point, point);
 }
 
+#[test]
+fn point_read_ewkb() {
+    let hex_wkb = "0101000020E6100000DB81DF2B5F7822C0DFBB7262B4744A40".to_string();
+    let new_point: Point<f64> = Point::from_wkb_hexstring(hex_wkb).unwrap();
+}
+
+
 fn simple_line() -> LineString<f64> {
     let mut line = LineString::new_empty();
     line.push_point(Point::new(0f64, 0f64));
